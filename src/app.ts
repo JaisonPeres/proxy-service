@@ -12,7 +12,7 @@ const apiUrl = process.env.API_URL || 'http://api.example.com'
 const credentials = process.env.API_TOKEN || 'token_example'
 const apiName = process.env.API_NAME || 'API_EXAMPLE'
 const apiAuthPath = process.env.API_AUTH_PATH || '/path/to/auth'
-const proxyToken = process.env.API_AUTH_PATH || '123456'
+const proxyToken = process.env.PROXY_TOKEN || '123456'
 
 
 // Instance of axios with API_URL
