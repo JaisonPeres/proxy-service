@@ -16,7 +16,7 @@ const proxyToken = process.env.API_AUTH_PATH || '123456'
 
 
 // Instance of axios with API_URL
-const apiCrm = axios.create({
+const finalApi = axios.create({
   baseURL: apiUrl,
   headers: {
     'Cache-Control': 'no-cache'
@@ -26,7 +26,7 @@ const apiCrm = axios.create({
 // Authenticate proxy service on final api
 async function authProxyOnApi () {
   try {
-    const { data: { nmToken } } = await apiCrm.post(
+    const { data: { nmToken } } = await finalApi.post(
       apiAuthPath,
       {
         dsCredentials: credentials
@@ -66,14 +66,14 @@ app.use('*', async (req, res) => {
   const finalToken = await authProxyOnApi()
   console.log(finalToken)
 
-  // Parse proxy parameters to request CRM Api
+  // Parse proxy parameters to request final api
   const { headers, method, body, originalUrl } = req
   console.log('request params: ', { headers, originalUrl, method, body })
 
   // Execute request on final api
   // TODO: improve authentication header options
   try {
-    const response = await apiCrm[method.toLowerCase()](
+    const response = await finalApi[method.toLowerCase()](
       originalUrl,
       body,
       {
