@@ -24,7 +24,7 @@ const finalApi = axios.create({
 })
 
 // Authenticate proxy service on final api
-async function authProxyOnApi () {
+async function authProxyOnApi (res) {
   try {
     const { data: { nmToken } } = await finalApi.post(
       apiAuthPath,
@@ -32,10 +32,18 @@ async function authProxyOnApi () {
         dsCredentials: credentials
       }
     )
+    if (!nmToken) {
+      res.status(401).send('Token not found')
+      return
+    }
     return nmToken
-  } catch (error) {
-    console.log(`Error on try request a token on ${apiName} api.`)
-    console.log('Error::: ', error)
+  } catch (err) {
+    const error = {
+      status: err.response.status,
+      message: `Validate credential error (${err.message})`
+    }
+    res.status(error.status).send(error)
+    console.log(err)
   }
 }
 
@@ -63,12 +71,10 @@ app.use('*', async (req, res) => {
   }
 
   // Get token from final api authentication
-  const finalToken = await authProxyOnApi()
-  console.log(finalToken)
+  const finalToken = await authProxyOnApi(res)
 
   // Parse proxy parameters to request final api
   const { headers, method, body, originalUrl } = req
-  console.log('request params: ', { headers, originalUrl, method, body })
 
   // Execute request on final api
   // TODO: improve authentication header options
@@ -77,21 +83,19 @@ app.use('*', async (req, res) => {
       originalUrl,
       body,
       {
-        withCredentials: true,
         headers: {
+          ...headers,
           'Cookie': `crmAuthToken=${finalToken}`
         }
       }
     )
-    console.log(response)
     res.send(response)
   } catch (err) {
     const error = {
       status: err.response.status,
-      message: err.message
+      message: `Request error (${err.message})`
     }
     res.status(error.status).send(error)
-    console.log(`Error on try request on ${apiName}: ${error.message}`)
     console.log(err)
   }
 
